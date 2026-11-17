@@ -4,7 +4,8 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const MODEL = process.env.OPENROUTER_MODEL || "inclusionai/ling-3.2-flash:free";
 
 app.use(express.json());
 app.use(express.static("public"));
@@ -15,6 +16,12 @@ app.get("/", (req, res) => {
 
 app.post("/api/chat", async (req, res) => {
     try {
+        if (!process.env.OPENROUTER_API_KEY) {
+            return res.status(503).json({
+                error: "OPENROUTER_API_KEY belum diatur di file .env"
+            });
+        }
+
         const messages = req.body.messages;
         
         if (!messages || !Array.isArray(messages)) {
@@ -29,12 +36,11 @@ app.post("/api/chat", async (req, res) => {
                 method: "POST",
         
                 headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`
+                    "Content-Type": "application/json",                    "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
                 },
                 
                 body: JSON.stringify({
-                    model: "inclusionai/ling-3.2-flash:free",
+                    model: MODEL,
                     messages: messages,
                     temperature: 0.7,
                     max_tokens: 1000,
