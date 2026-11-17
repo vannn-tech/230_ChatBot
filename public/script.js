@@ -3,6 +3,7 @@
 
   const API_URL = "/api/chat";
   const MAX_HISTORY = 20; // jumlah pesan terakhir yang dikirim ke model
+  const DRAFT_KEY = "chatbot-ai-draft";
 
   const SYSTEM_PROMPT = {
     role: "system",
@@ -268,6 +269,29 @@
     input.style.height = Math.min(input.scrollHeight, 150) + "px";
   }
 
+  function persistDraft() {
+    try {
+      if (input.value) {
+        localStorage.setItem(DRAFT_KEY, input.value);
+      } else {
+        localStorage.removeItem(DRAFT_KEY);
+      }
+    } catch (error) {
+      console.error("Draft pesan nggak bisa disimpan:", error);
+      status.textContent = "Draft pesan nggak bisa disimpan di browser ini.";
+    }
+  }
+
+  function restoreDraft() {
+    try {
+      input.value = localStorage.getItem(DRAFT_KEY) || "";
+      autosize();
+    } catch (error) {
+      console.error("Draft pesan nggak bisa dibuka:", error);
+      status.textContent = "Draft pesan nggak bisa dibuka di browser ini.";
+    }
+  }
+
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     if (busy) { controller && controller.abort(); return; }
@@ -280,6 +304,7 @@
 
     input.value = "";
     autosize();
+    persistDraft();
     addMessage("user", text);
     ask(text);
   });
@@ -290,7 +315,10 @@
       form.requestSubmit();
     }
   });
-  input.addEventListener("input", autosize);
+  input.addEventListener("input", () => {
+    autosize();
+    persistDraft();
+  });
 
   newBtn.addEventListener("click", () => {
     session++;
@@ -298,10 +326,14 @@
     controller = null;
     history = [];
     log.innerHTML = "";
+    input.value = "";
+    autosize();
+    persistDraft();
     setBusy(false);
     greet();
     input.focus();
   });
 
+  restoreDraft();
   greet();
 })();
