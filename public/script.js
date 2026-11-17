@@ -24,6 +24,7 @@
   const sendBtn = $("send");
   const newBtn = $("new-chat");
   const head = $("head");
+  const status = $("status");
 
   let history = []; // hanya pesan user dan assistant
   let controller = null;
@@ -164,6 +165,8 @@
     head.classList.toggle("is-streaming", state);
     sendBtn.textContent = state ? "Berhenti" : "Kirim";
     sendBtn.classList.toggle("is-stop", state);
+    sendBtn.setAttribute("aria-label", state ? "Berhenti bikin jawaban" : "Kirim pesan");
+    status.textContent = state ? "Lagi nunggu jawaban dari AI." : "Siap menerima pesan.";
   }
 
   /* ================= Kirim pesan dan baca streaming ================= */
