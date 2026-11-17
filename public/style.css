@@ -271,6 +271,16 @@ button:focus-visible, textarea:focus-visible {
   .composer { padding-bottom: 14px; }
 }
 
+@media (max-width: 380px) {
+  .chat__head { gap: 9px; padding: 14px 12px; }
+  .mark { width: 36px; height: 36px; }
+  .chat__title h1 { font-size: 1rem; }
+  .chat__title p { font-size: .7rem; }
+  .ghost { padding: 7px 9px; font-size: .78rem; }
+  .composer { gap: 8px; padding-right: 12px; padding-left: 12px; }
+  .send { padding: 0 16px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; scroll-behavior: auto !important; }
 }
