@@ -19,7 +19,7 @@ app.get("/", (req, res) => {
 app.post("/api/chat", async (req, res) => {
     try {
         const messages = req.body && req.body.messages;
-        
+
         if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) {
             return res.status(400).json({
                 error: `Messages harus berupa array berisi 1 sampai ${MAX_MESSAGES} pesan`
@@ -45,16 +45,16 @@ app.post("/api/chat", async (req, res) => {
                 error: "OPENROUTER_API_KEY belum diatur di file .env"
             });
         }
-        
+
         const response = await fetch(
             "https://openrouter.ai/api/v1/chat/completions",
              {
                 method: "POST",
-        
+
                 headers: {
                     "Content-Type": "application/json",                    "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
                 },
-                
+
                 body: JSON.stringify({
                     model: MODEL,
                     messages: messages,
@@ -70,15 +70,15 @@ app.post("/api/chat", async (req, res) => {
             console.error("OpenRouter Error:", errorData);
             return res.status(response.status).json({ error: errorData });
         }
-        
+
         // Header untuk streaming
         res.setHeader("Content-Type", "text/event-stream");
         res.setHeader("Cache-Control", "no-cache");
         res.setHeader("Connection", "keep-alive");
-        
+
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-        
+
         let buffer = "";
         let finished = false;
 
