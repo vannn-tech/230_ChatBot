@@ -80,8 +80,32 @@ app.post("/api/chat", async (req, res) => {
         const decoder = new TextDecoder();
         
         let buffer = "";
+        let finished = false;
 
-        while (true) {
+        const sendLine = (line) => {
+            const trimmedLine = line.trim();
+            if (!trimmedLine.startsWith("data:")) {
+                return;
+            }
+
+            const data = trimmedLine.slice(5).trim();
+            if (data === "[DONE]") {
+                finished = true;
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices[0].delta.content;
+                if (content) {
+                    res.write(`data: ${JSON.stringify({ content })}\n\n`);
+                }
+            } catch (error) {
+                console.error("JSON Parse Error:", error);
+            }
+        };
+
+        while (!finished) {
             const { done, value } = await reader.read();
 
             if (done) {
@@ -96,37 +120,18 @@ app.post("/api/chat", async (req, res) => {
             buffer = lines.pop();
 
             for (const line of lines) {
-                const trimmedLine = line.trim();
-
-                if (!trimmedLine) {
-                    continue;
-                }
-
-                if (!trimmedLine.startsWith("data:")) {
-                    continue;
-                }
-
-                const data = trimmedLine.slice(5).trim();
-
-                if (data === "[DONE]") {
-                    continue;
-                }
-
-                try {
-                    const parsed = JSON.parse(data);
-
-                    const content = parsed.choices[0].delta.content;
-
-                    if (content) {
-                        res.write(`data: ${JSON.stringify({ content })}\n\n`);
-                    }
-
-                } catch (error) {
-                    console.error("JSON Parse Error:", error);
-                }
+                sendLine(line);
+                if (finished) break;
             }
         }
 
+        buffer += decoder.decode();
+        if (finished) {
+            await reader.cancel();
+        }
+        if (buffer) {
+            sendLine(buffer);
+        }
         res.end();
 
     } catch (error) {
