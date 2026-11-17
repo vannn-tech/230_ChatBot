@@ -6,8 +6,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const MODEL = process.env.OPENROUTER_MODEL || "inclusionai/ling-3.2-flash:free";
+const MAX_MESSAGES = 21;
+const MAX_MESSAGE_LENGTH = 4000;
 
-app.use(express.json());
+app.use(express.json({ limit: "128kb" }));
 app.use(express.static("public"));
 
 app.get("/", (req, res) => {
@@ -22,11 +24,25 @@ app.post("/api/chat", async (req, res) => {
             });
         }
 
-        const messages = req.body.messages;
+        const messages = req.body && req.body.messages;
         
-        if (!messages || !Array.isArray(messages)) {
+        if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) {
             return res.status(400).json({
-                 error: "Messages harus berupa array"
+                error: `Messages harus berupa array berisi 1 sampai ${MAX_MESSAGES} pesan`
+            });
+        }
+
+        const validRoles = new Set(["system", "user", "assistant"]);
+        const invalidMessage = messages.some((message) =>
+            !message ||
+            !validRoles.has(message.role) ||
+            typeof message.content !== "string" ||
+            message.content.length === 0 ||
+            message.content.length > MAX_MESSAGE_LENGTH
+        );
+        if (invalidMessage) {
+            return res.status(400).json({
+                error: `Setiap pesan harus punya role yang valid dan isi 1 sampai ${MAX_MESSAGE_LENGTH} karakter`
             });
         }
         
