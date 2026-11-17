@@ -18,12 +18,6 @@ app.get("/", (req, res) => {
 
 app.post("/api/chat", async (req, res) => {
     try {
-        if (!process.env.OPENROUTER_API_KEY) {
-            return res.status(503).json({
-                error: "OPENROUTER_API_KEY belum diatur di file .env"
-            });
-        }
-
         const messages = req.body && req.body.messages;
         
         if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) {
@@ -43,6 +37,12 @@ app.post("/api/chat", async (req, res) => {
         if (invalidMessage) {
             return res.status(400).json({
                 error: `Setiap pesan harus punya role yang valid dan isi 1 sampai ${MAX_MESSAGE_LENGTH} karakter`
+            });
+        }
+
+        if (!process.env.OPENROUTER_API_KEY) {
+            return res.status(503).json({
+                error: "OPENROUTER_API_KEY belum diatur di file .env"
             });
         }
         
@@ -147,6 +147,10 @@ app.post("/api/chat", async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server berjalan di http://localhost:${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server berjalan di http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;
