@@ -1,9 +1,10 @@
 {
   "name": "praktikum-7",
   "version": "1.0.0",
-  "description": "",
+  "description": "Chatbot AI sederhana pakai Express dan OpenRouter",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
